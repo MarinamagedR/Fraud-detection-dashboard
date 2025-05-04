@@ -24,10 +24,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # Page configuration
-st.set_page_config(page_title="Marina Auditing Visualization Tool (MAVT)", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Advanced Fraud Detection Dashboard", layout="wide", initial_sidebar_state="expanded")
 st.markdown("""
     <div style="background: linear-gradient(90deg, #1E88E5, #42A5F5); padding: 20px; border-radius: 10px; text-align: center;">
-        <h1 style="color: white; margin: 0;">Marina Auditing Visualization Tool (MAVT)</h1>
+        <h1 style="color: white; margin: 0;">Advanced Credit Card Fraud Detection Dashboard</h1>
         <h3 style="color: #E3F2FD; margin: 5px 0 0;">Data Visualization Tools and Techniques in Business Informatics</h3>
     </div>
 """, unsafe_allow_html=True)
@@ -79,13 +79,14 @@ with st.sidebar:
             st.success(f"Loaded default dataset: {df.shape[0]} transactions")
     threshold = st.slider("Fraud Probability Threshold", 0.1, 0.9, 0.7, 0.05, help="Set the cutoff for fraud detection.")
     compliance_limit = st.number_input("Compliance Amount Limit ($)", min_value=0.0, value=1000.0, step=100.0, help="Flag transactions above this amount.")
+    severity_weight = st.slider("Severity Weight", 0.1, 1.0, 0.5, 0.1, help="Adjust how much amount affects severity score.")
 
 # Main logic
 if st.session_state.df is not None:
     df = st.session_state.df
 
     # Train models
-    def train_models(df, threshold, compliance_limit):
+    def train_models(df, threshold, severity_weight, compliance_limit):
         st.write("Training fraud detection models...")
         try:
             X = df.drop(['Is_Fraudulent', 'Transaction_ID', 'Timestamp', 'Location', 'Transaction_Type'], axis=1)
@@ -153,6 +154,7 @@ if st.session_state.df is not None:
             best_probs = st.session_state.best_model.predict_proba(X_scaled)[:, 1] if hasattr(st.session_state.best_model, 'predict_proba') else st.session_state.best_model.predict(X_scaled)
             df['Fraud_Probability'] = best_probs
             df['Predicted'] = (df['Fraud_Probability'] >= threshold).astype(int)
+            df['Severity_Score'] = df['Fraud_Probability'] * df['Transaction_Amount'] * severity_weight
             df['Compliance_Flag'] = (df['Transaction_Amount'] > compliance_limit).astype(int)
             df['Risk_Category'] = pd.cut(df['Fraud_Probability'], bins=[0, 0.3, 0.7, 1], labels=['Low', 'Medium', 'High'], include_lowest=True)
 
@@ -165,12 +167,13 @@ if st.session_state.df is not None:
             return df, None
 
     # Update derived columns
-    def update_derived_columns(df, threshold, compliance_limit):
+    def update_derived_columns(df, threshold, severity_weight, compliance_limit):
         if st.session_state.best_model and st.session_state.X is not None:
             X_scaled = st.session_state.scaler.transform(st.session_state.X)
             best_probs = st.session_state.best_model.predict_proba(X_scaled)[:, 1] if hasattr(st.session_state.best_model, 'predict_proba') else st.session_state.best_model.predict(X_scaled)
             df['Fraud_Probability'] = best_probs
             df['Predicted'] = (df['Fraud_Probability'] >= threshold).astype(int)
+            df['Severity_Score'] = df['Fraud_Probability'] * df['Transaction_Amount'] * severity_weight
             df['Compliance_Flag'] = (df['Transaction_Amount'] > compliance_limit).astype(int)
             df['Risk_Category'] = pd.cut(df['Fraud_Probability'], bins=[0, 0.3, 0.7, 1], labels=['Low', 'Medium', 'High'], include_lowest=True)
             st.session_state.df = df
@@ -183,7 +186,7 @@ if st.session_state.df is not None:
         st.info("Run the analysis to see engineering insights.")
         if st.button("Run Fraud Detection Analysis", key="run_analysis"):
             with st.spinner("Running fraud detection..."):
-                df, results = train_models(df, threshold, compliance_limit)
+                df, results = train_models(df, threshold, severity_weight, compliance_limit)
                 st.session_state.df = df
                 st.session_state.model_trained = True
                 st.session_state.results = results
@@ -191,7 +194,7 @@ if st.session_state.df is not None:
     else:
         if st.sidebar.button("Refresh Analysis", key="refresh_analysis"):
             with st.spinner("Updating dashboard..."):
-                update_derived_columns(df, threshold, compliance_limit)
+                update_derived_columns(df, threshold, severity_weight, compliance_limit)
 
     if st.session_state.model_trained and st.session_state.results is not None:
         df = st.session_state.df
@@ -298,7 +301,7 @@ if st.session_state.df is not None:
         with tab3:  # Visuals
             st.subheader("Interactive Charts")
             start_date = st.date_input("Start Date", df['Timestamp'].min().date(), key="start_date")
-            end_date = st.date_input("End Date", df['Timestamp'].max()..date(), key="end_date")
+            end_date = st.date_input("End Date", df['Timestamp'].max().date(), key="end_date")
             filtered_df = df[(df['Timestamp'].dt.date >= start_date) & (df['Timestamp'].dt.date <= end_date)]
 
             row1 = st.columns(2)
