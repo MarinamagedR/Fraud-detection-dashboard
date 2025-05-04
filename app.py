@@ -24,7 +24,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # Page configuration
-st.set_page_config(page_title="Advanced Fraud Detection Dashboard", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Marina Auditing Visualization Tool (MAVT)", layout="wide", initial_sidebar_state="expanded")
 st.markdown("""
     <div style="background: linear-gradient(90deg, #1E88E5, #42A5F5); padding: 20px; border-radius: 10px; text-align: center;">
         <h1 style="color: white; margin: 0;">Marina Auditing Visualization Tool (MAVT)</h1>
@@ -79,7 +79,7 @@ with st.sidebar:
             st.success(f"Loaded default dataset: {df.shape[0]} transactions")
     threshold = st.slider("Fraud Probability Threshold", 0.1, 0.9, 0.7, 0.05, help="Set the cutoff for fraud detection.")
     compliance_limit = st.number_input("Compliance Amount Limit ($)", min_value=0.0, value=1000.0, step=100.0, help="Flag transactions above this amount.")
-   
+
 # Main logic
 if st.session_state.df is not None:
     df = st.session_state.df
