@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 st.set_page_config(page_title="Advanced Fraud Detection Dashboard", layout="wide", initial_sidebar_state="expanded")
 st.markdown("""
     <div style="background: linear-gradient(90deg, #1E88E5, #42A5F5); padding: 20px; border-radius: 10px; text-align: center;">
-        <h1 style="color: white; margin: 0;">Advanced Credit Card Fraud Detection Dashboard</h1>
+        <h1 style="color: white; margin: 0;">Marina Auditing Visualization Tool (MAVT)</h1>
         <h3 style="color: #E3F2FD; margin: 5px 0 0;">Data Visualization Tools and Techniques in Business Informatics</h3>
     </div>
 """, unsafe_allow_html=True)
@@ -79,8 +79,7 @@ with st.sidebar:
             st.success(f"Loaded default dataset: {df.shape[0]} transactions")
     threshold = st.slider("Fraud Probability Threshold", 0.1, 0.9, 0.7, 0.05, help="Set the cutoff for fraud detection.")
     compliance_limit = st.number_input("Compliance Amount Limit ($)", min_value=0.0, value=1000.0, step=100.0, help="Flag transactions above this amount.")
-    severity_weight = st.slider("Severity Weight", 0.1, 1.0, 0.5, 0.1, help="Adjust how much amount affects severity score.")
-
+   
 # Main logic
 if st.session_state.df is not None:
     df = st.session_state.df
