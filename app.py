@@ -277,9 +277,9 @@ if st.session_state.df is not None:
             risk_filter = st.multiselect("Filter by Risk", options=['Low', 'Medium', 'High'], default=['High'])
             flagged_only = st.checkbox("Show Flagged Only", value=True)
             filtered_df = df[df['Risk_Category'].isin(risk_filter) & (df['Predicted'] == 1 if flagged_only else True)]
-            st.write("Top 10 High-Severity Transactions")
-            st.dataframe(filtered_df.nlargest(10, 'Severity_Score')[['Transaction_ID', 'Transaction_Amount', 'Fraud_Probability', 'Severity_Score', 'Risk_Category']]
-                         .style.format({'Fraud_Probability': "{:.2%}", 'Severity_Score': "{:.2f}"}))
+            st.write("Top 10 High-Risk Transactions")
+            st.dataframe(filtered_df.nlargest(10, 'Fraud_Probability')[['Transaction_ID', 'Transaction_Amount', 'Fraud_Probability', 'Risk_Category']]
+                         .style.format({'Fraud_Probability': "{:.2%}"}))
 
             st.subheader("Audit Notes")
             if not filtered_df.empty:
@@ -341,7 +341,7 @@ Compliance Violations: {df['Compliance_Flag'].sum():,}
 Best Model: {best_model_name} (F1 Score: {results[best_model_name]['f1']:.4f})
 Top Features: {', '.join(st.session_state.feature_importance['Feature'].head(3).tolist()) if st.session_state.feature_importance is not None else 'N/A'}
 Audit Notes: {', '.join([f"{tid}: {data['note']}" for tid, data in st.session_state.annotations.items()]) if st.session_state.annotations else 'None recorded'}
-Recommendations: Focus on high-severity transactions for review.
+Recommendations: Focus on high-risk transactions for review.
 """
             st.text_area("Report Preview", report_text, height=300)
             st.download_button("Download Report", report_text, "audit_report.txt", "text/plain", key="download_report")
