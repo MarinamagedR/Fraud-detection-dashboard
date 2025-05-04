@@ -85,7 +85,7 @@ if st.session_state.df is not None:
     df = st.session_state.df
 
     # Train models
-    def train_models(df, threshold, severity_weight, compliance_limit):
+    def train_models(df, threshold, compliance_limit):
         st.write("Training fraud detection models...")
         try:
             X = df.drop(['Is_Fraudulent', 'Transaction_ID', 'Timestamp', 'Location', 'Transaction_Type'], axis=1)
@@ -153,7 +153,6 @@ if st.session_state.df is not None:
             best_probs = st.session_state.best_model.predict_proba(X_scaled)[:, 1] if hasattr(st.session_state.best_model, 'predict_proba') else st.session_state.best_model.predict(X_scaled)
             df['Fraud_Probability'] = best_probs
             df['Predicted'] = (df['Fraud_Probability'] >= threshold).astype(int)
-            df['Severity_Score'] = df['Fraud_Probability'] * df['Transaction_Amount'] * severity_weight
             df['Compliance_Flag'] = (df['Transaction_Amount'] > compliance_limit).astype(int)
             df['Risk_Category'] = pd.cut(df['Fraud_Probability'], bins=[0, 0.3, 0.7, 1], labels=['Low', 'Medium', 'High'], include_lowest=True)
 
@@ -166,13 +165,12 @@ if st.session_state.df is not None:
             return df, None
 
     # Update derived columns
-    def update_derived_columns(df, threshold, severity_weight, compliance_limit):
+    def update_derived_columns(df, threshold, compliance_limit):
         if st.session_state.best_model and st.session_state.X is not None:
             X_scaled = st.session_state.scaler.transform(st.session_state.X)
             best_probs = st.session_state.best_model.predict_proba(X_scaled)[:, 1] if hasattr(st.session_state.best_model, 'predict_proba') else st.session_state.best_model.predict(X_scaled)
             df['Fraud_Probability'] = best_probs
             df['Predicted'] = (df['Fraud_Probability'] >= threshold).astype(int)
-            df['Severity_Score'] = df['Fraud_Probability'] * df['Transaction_Amount'] * severity_weight
             df['Compliance_Flag'] = (df['Transaction_Amount'] > compliance_limit).astype(int)
             df['Risk_Category'] = pd.cut(df['Fraud_Probability'], bins=[0, 0.3, 0.7, 1], labels=['Low', 'Medium', 'High'], include_lowest=True)
             st.session_state.df = df
@@ -185,7 +183,7 @@ if st.session_state.df is not None:
         st.info("Run the analysis to see engineering insights.")
         if st.button("Run Fraud Detection Analysis", key="run_analysis"):
             with st.spinner("Running fraud detection..."):
-                df, results = train_models(df, threshold, severity_weight, compliance_limit)
+                df, results = train_models(df, threshold, compliance_limit)
                 st.session_state.df = df
                 st.session_state.model_trained = True
                 st.session_state.results = results
@@ -193,7 +191,7 @@ if st.session_state.df is not None:
     else:
         if st.sidebar.button("Refresh Analysis", key="refresh_analysis"):
             with st.spinner("Updating dashboard..."):
-                update_derived_columns(df, threshold, severity_weight, compliance_limit)
+                update_derived_columns(df, threshold, compliance_limit)
 
     if st.session_state.model_trained and st.session_state.results is not None:
         df = st.session_state.df
